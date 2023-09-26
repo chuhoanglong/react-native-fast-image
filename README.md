@@ -1,92 +1,284 @@
-# react-native-fast-image
+<h1 align="center">
+  🚩 FastImage
+</h1>
 
+<div align="center">
 
+Performant React Native image component.
 
-## Getting started
+[![Version][version-badge]][package]
+[![Downloads][downloads-badge]][npmtrends]
+[![Build Status][build-badge]][build]
+[![Code Coverage][coverage-badge]][coverage]
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+[![Watch on GitHub][github-watch-badge]][github-watch]
+[![Star on GitHub][github-star-badge]][github-star]
+[![Tweet][twitter-badge]][twitter]
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+</div>
 
-## Add your files
+<p align="center" >
+  <kbd>
+    <img
+      src="https://github.com/DylanVann/react-native-fast-image/blob/main/docs/assets/scroll.gif?raw=true"
+      title="Scroll Demo"
+      float="left"
+    >
+  </kbd>
+  <kbd>
+    <img
+      src="https://github.com/DylanVann/react-native-fast-image/blob/main/docs/assets/priority.gif?raw=true"
+      title="Priority Demo"
+      float="left"
+    >
+  </kbd>
+  <br>
+  <em>FastImage example app.</em>
+</p>
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+React Native's `Image` component handles image caching like browsers
+for the most part.
+If the server is returning proper cache control
+headers for images you'll generally get the sort of built in
+caching behavior you'd have in a browser.
+Even so many people have noticed:
 
-```
-cd existing_repo
-git remote add origin https://gitlab.emddi.xyz/emddi-software/react-native-fast-image.git
-git branch -M main
-git push -uf origin main
-```
+-   Flickering.
+-   Cache misses.
+-   Low performance loading from cache.
+-   Low performance in general.
 
-## Integrate with your tools
+`FastImage` is an `Image` replacement that solves these issues.
+`FastImage` is a wrapper around
+[SDWebImage (iOS)](https://github.com/rs/SDWebImage)
+and
+[Glide (Android)](https://github.com/bumptech/glide).
 
-- [ ] [Set up project integrations](https://gitlab.emddi.xyz/emddi-software/react-native-fast-image/-/settings/integrations)
+## Features
 
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+-   [x] Aggressively cache images.
+-   [x] Add authorization headers.
+-   [x] Prioritize images.
+-   [x] Preload images.
+-   [x] GIF support.
+-   [x] Border radius.
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+**Note: You must be using React Native 0.60.0 or higher to use the most recent version of `react-native-fast-image`.**
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+```bash
+yarn add react-native-fast-image
+cd ios && pod install
+```
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```jsx
+import FastImage from 'react-native-fast-image'
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+const YourImage = () => (
+    <FastImage
+        style={{ width: 200, height: 200 }}
+        source={{
+            uri: 'https://unsplash.it/400/400?image=1',
+            headers: { Authorization: 'someAuthToken' },
+            priority: FastImage.priority.normal,
+        }}
+        resizeMode={FastImage.resizeMode.contain}
+    />
+)
+```
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+## Are you using Glide already using an AppGlideModule?
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+-   [Are you using Glide already using an AppGlideModule?](docs/app-glide-module.md) (you might have problems if you don't read this)
 
-## License
-For open source projects, say how it is licensed.
+## Are you using Proguard?
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+If you use Proguard you will need to add these lines to `android/app/proguard-rules.pro`:
+
+```
+-keep public class com.dylanvann.fastimage.* {*;}
+-keep public class com.dylanvann.fastimage.** {*;}
+-keep public class * implements com.bumptech.glide.module.GlideModule
+-keep public class * extends com.bumptech.glide.module.AppGlideModule
+-keep public enum com.bumptech.glide.load.ImageHeaderParser$** {
+  **[] $VALUES;
+  public *;
+}
+```
+
+## Properties
+
+### `source?: object`
+
+Source for the remote image to load.
+
+---
+
+### `source.uri?: string`
+
+Remote url to load the image from. e.g. `'https://facebook.github.io/react/img/logo_og.png'`.
+
+---
+
+### `source.headers?: object`
+
+Headers to load the image with. e.g. `{ Authorization: 'someAuthToken' }`.
+
+---
+
+### `source.priority?: enum`
+
+-   `FastImage.priority.low` - Low Priority.
+-   `FastImage.priority.normal` **(Default)** - Normal Priority.
+-   `FastImage.priority.high` - High Priority.
+
+---
+
+### `source.cache?: enum`
+
+-   `FastImage.cacheControl.immutable` - **(Default)** - Only updates if url changes.
+-   `FastImage.cacheControl.web` - Use headers and follow normal caching procedures.
+-   `FastImage.cacheControl.cacheOnly` - Only show images from cache, do not make any network requests.
+
+---
+
+### `defaultSource?: number`
+
+-   An asset loaded with `require(...)`.
+-   Note that like the built-in `Image` implementation, on Android `defaultSource` does not work in debug mode. This is due to the fact that assets are sent from the dev server, but RN's functions only know how to load it from `res`.
+
+---
+
+### `resizeMode?: enum`
+
+-   `FastImage.resizeMode.contain` - Scale the image uniformly (maintain the image's aspect ratio) so that both dimensions (width and height) of the image will be equal to or less than the corresponding dimension of the view (minus padding).
+-   `FastImage.resizeMode.cover` **(Default)** - Scale the image uniformly (maintain the image's aspect ratio) so that both dimensions (width and height) of the image will be equal to or larger than the corresponding dimension of the view (minus padding).
+-   `FastImage.resizeMode.stretch` - Scale width and height independently, This may change the aspect ratio of the src.
+-   `FastImage.resizeMode.center` - Do not scale the image, keep centered.
+
+---
+
+### `onLoadStart?: () => void`
+
+Called when the image starts to load.
+
+---
+
+### `onProgress?: (event) => void`
+
+Called when the image is loading.
+
+e.g. `onProgress={e => console.log(e.nativeEvent.loaded / e.nativeEvent.total)}`
+
+---
+
+### `onLoad?: (event) => void`
+
+Called on a successful image fetch. Called with the width and height of the loaded image.
+
+e.g. `onLoad={e => console.log(e.nativeEvent.width, e.nativeEvent.height)}`
+
+---
+
+### `onError?: () => void`
+
+Called on an image fetching error.
+
+---
+
+### `onLoadEnd?: () => void`
+
+Called when the image finishes loading, whether it was successful or an error.
+
+---
+
+### `style`
+
+A React Native style. Supports using `borderRadius`.
+
+---
+
+### `fallback: boolean`
+
+If true will fallback to using `Image`.
+In this case the image will still be styled and laid out the same way as `FastImage`.
+
+---
+
+### `tintColor?: number | string`
+
+If supplied, changes the color of all the non-transparent pixels to the given color.
+
+## Static Methods
+
+### `FastImage.preload: (source[]) => void`
+
+Preload images to display later. e.g.
+
+```js
+FastImage.preload([
+    {
+        uri: 'https://facebook.github.io/react/img/logo_og.png',
+        headers: { Authorization: 'someAuthToken' },
+    },
+    {
+        uri: 'https://facebook.github.io/react/img/logo_og.png',
+        headers: { Authorization: 'someAuthToken' },
+    },
+])
+```
+
+### `FastImage.clearMemoryCache: () => Promise<void>`
+
+Clear all images from memory cache.
+
+### `FastImage.clearDiskCache: () => Promise<void>`
+
+Clear all images from disk cache.
+
+## Troubleshooting
+
+If you have any problems using this library try the steps in [troubleshooting](docs/troubleshooting.md) and see if they fix it.
+
+## Development
+
+[Follow these instructions to get the example app running.](docs/development.md)
+
+## Supported React Native Versions
+
+This project only aims to support the latest version of React Native.\
+This simplifies the development and the testing of the project.
+
+If you require new features or bug fixes for older versions you can fork this project.
+
+## Credits
+
+The idea for this modules came from
+[vovkasm's](https://github.com/vovkasm)
+[react-native-web-image](https://github.com/vovkasm/react-native-web-image)
+package.
+It also uses Glide and SDWebImage, but didn't have some features I needed (priority, headers).
+
+Thanks to [@mobinni](https://github.com/mobinni) for helping with the conceptualization
+
+## Licenses
+
+-   FastImage - MIT © [DylanVann](https://github.com/DylanVann)
+-   SDWebImage - `MIT`
+-   Glide - BSD, part MIT and Apache 2.0. See the [LICENSE](https://github.com/bumptech/glide/blob/master/license) file for details.
+
+[build-badge]: https://github.com/dylanvann/react-native-fast-image/workflows/CI/badge.svg
+[build]: https://github.com/DylanVann/react-native-fast-image/actions?query=workflow%3ACI
+[coverage-badge]: https://img.shields.io/codecov/c/github/dylanvann/react-native-fast-image.svg
+[coverage]: https://codecov.io/github/dylanvann/react-native-fast-image
+[downloads-badge]: https://img.shields.io/npm/dm/react-native-fast-image.svg
+[npmtrends]: http://www.npmtrends.com/react-native-fast-image
+[package]: https://www.npmjs.com/package/react-native-fast-image
+[version-badge]: https://img.shields.io/npm/v/react-native-fast-image.svg
+[twitter]: https://twitter.com/home?status=Check%20out%20react-native-fast-image%20by%20%40atomarranger%20https%3A//github.com/DylanVann/react-native-fast-image
+[twitter-badge]: https://img.shields.io/twitter/url/https/github.com/DylanVann/react-native-fast-image.svg?style=social
+[github-watch-badge]: https://img.shields.io/github/watchers/dylanvann/react-native-fast-image.svg?style=social
+[github-watch]: https://github.com/dylanvann/react-native-fast-image/watchers
+[github-star-badge]: https://img.shields.io/github/stars/dylanvann/react-native-fast-image.svg?style=social
+[github-star]: https://github.com/dylanvann/react-native-fast-image/stargazers
