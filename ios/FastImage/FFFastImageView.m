@@ -1,16 +1,15 @@
 #import "FFFastImageView.h"
-#import <SDWebImage/UIImage+MultiFormat.h>
-#import <SDWebImage/UIView+WebCache.h>
+#import "FFFastImageCacheNoParamMapper.h"
 
-@interface FFFastImageView ()
+@interface FFFastImageView()
 
-@property(nonatomic, assign) BOOL hasSentOnLoadStart;
-@property(nonatomic, assign) BOOL hasCompleted;
-@property(nonatomic, assign) BOOL hasErrored;
+@property (nonatomic, assign) BOOL hasSentOnLoadStart;
+@property (nonatomic, assign) BOOL hasCompleted;
+@property (nonatomic, assign) BOOL hasErrored;
 // Whether the latest change of props requires the image to be reloaded
-@property(nonatomic, assign) BOOL needsReload;
+@property (nonatomic, assign) BOOL needsReload;
 
-@property(nonatomic, strong) NSDictionary* onLoadEvent;
+@property (nonatomic, strong) NSDictionary* onLoadEvent;
 
 @end
 
@@ -23,35 +22,35 @@
     return self;
 }
 
-- (void) setResizeMode: (RCTResizeMode)resizeMode {
+- (void)setResizeMode:(RCTResizeMode)resizeMode {
     if (_resizeMode != resizeMode) {
         _resizeMode = resizeMode;
-        self.contentMode = (UIViewContentMode) resizeMode;
+        self.contentMode = (UIViewContentMode)resizeMode;
     }
 }
 
-- (void) setOnFastImageLoadEnd: (RCTDirectEventBlock)onFastImageLoadEnd {
+- (void)setOnFastImageLoadEnd:(RCTDirectEventBlock)onFastImageLoadEnd {
     _onFastImageLoadEnd = onFastImageLoadEnd;
     if (self.hasCompleted) {
         _onFastImageLoadEnd(@{});
     }
 }
 
-- (void) setOnFastImageLoad: (RCTDirectEventBlock)onFastImageLoad {
+- (void)setOnFastImageLoad:(RCTDirectEventBlock)onFastImageLoad {
     _onFastImageLoad = onFastImageLoad;
     if (self.hasCompleted) {
         _onFastImageLoad(self.onLoadEvent);
     }
 }
 
-- (void) setOnFastImageError: (RCTDirectEventBlock)onFastImageError {
+- (void)setOnFastImageError:(RCTDirectEventBlock)onFastImageError {
     _onFastImageError = onFastImageError;
     if (self.hasErrored) {
         _onFastImageError(@{});
     }
 }
 
-- (void) setOnFastImageLoadStart: (RCTDirectEventBlock)onFastImageLoadStart {
+- (void)setOnFastImageLoadStart:(RCTDirectEventBlock)onFastImageLoadStart {
     if (_source && !self.hasSentOnLoadStart) {
         _onFastImageLoadStart = onFastImageLoadStart;
         onFastImageLoadStart(@{});
@@ -62,108 +61,94 @@
     }
 }
 
-- (void) setImageColor: (UIColor*)imageColor {
+- (void)setImageColor:(UIColor *)imageColor {
     if (imageColor != nil) {
         _imageColor = imageColor;
-        if (super.image) {
-            super.image = [self makeImage: super.image withTint: self.imageColor];
-        }
+        super.image = [self makeImage:super.image withTint:self.imageColor];
     }
 }
 
-- (UIImage*) makeImage: (UIImage*)image withTint: (UIColor*)color {
+- (UIImage*)makeImage:(UIImage *)image withTint:(UIColor *)color {
     UIImage *newImage = [image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:image.size];
-    newImage = [renderer imageWithActions:^(UIGraphicsImageRendererContext * _Nonnull rendererContext) {
-        [color setFill];
-        [newImage drawInRect:CGRectMake(0, 0, image.size.width, newImage.size.height)];
-    }];
+    UIGraphicsBeginImageContextWithOptions(image.size, NO, newImage.scale);
+    [color set];
+    [newImage drawInRect:CGRectMake(0, 0, image.size.width, newImage.size.height)];
+    newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
     return newImage;
 }
 
-- (void) setImage: (UIImage*)image {
+- (void)setImage:(UIImage *)image {
     if (self.imageColor != nil) {
-        super.image = [self makeImage: image withTint: self.imageColor];
+        super.image = [self makeImage:image withTint:self.imageColor];
     } else {
         super.image = image;
     }
 }
 
-- (void) sendOnLoad: (UIImage*)image {
+- (void)sendOnLoad:(UIImage *)image {
     self.onLoadEvent = @{
-            @"width": [NSNumber numberWithDouble: image.size.width],
-            @"height": [NSNumber numberWithDouble: image.size.height]
-    };
+                         @"width":[NSNumber numberWithDouble:image.size.width],
+                         @"height":[NSNumber numberWithDouble:image.size.height]
+                         };
     if (self.onFastImageLoad) {
         self.onFastImageLoad(self.onLoadEvent);
     }
 }
 
-- (void) setSource: (FFFastImageSource*)source {
+- (void)setSource:(FFFastImageSource *)source {
     if (_source != source) {
         _source = source;
         _needsReload = YES;
     }
 }
 
-- (void) setDefaultSource: (UIImage*)defaultSource {
-    if (_defaultSource != defaultSource) {
-        _defaultSource = defaultSource;
-        _needsReload = YES;
-    }
-}
-
-- (void) didSetProps: (NSArray<NSString*>*)changedProps {
+- (void)didSetProps:(NSArray<NSString *> *)changedProps
+{
     if (_needsReload) {
         [self reloadImage];
     }
 }
 
-- (void) reloadImage {
+- (void)reloadImage
+{
     _needsReload = NO;
 
     if (_source) {
+
         // Load base64 images.
         NSString* url = [_source.url absoluteString];
-        if (url && [url hasPrefix: @"data:image"]) {
+        if (url && [url hasPrefix:@"data:image"]) {
             if (self.onFastImageLoadStart) {
                 self.onFastImageLoadStart(@{});
                 self.hasSentOnLoadStart = YES;
-            } else {
+            } {
                 self.hasSentOnLoadStart = NO;
             }
-            // Use SDWebImage API to support external format like WebP images
-            UIImage* image = [UIImage sd_imageWithData: [NSData dataWithContentsOfURL: _source.url]];
-            [self setImage: image];
+            UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:_source.url]];
+            [self setImage:image];
             if (self.onFastImageProgress) {
                 self.onFastImageProgress(@{
-                        @"loaded": @(1),
-                        @"total": @(1)
-                });
+                                           @"loaded": @(1),
+                                           @"total": @(1)
+                                           });
             }
             self.hasCompleted = YES;
-            [self sendOnLoad: image];
-
+            [self sendOnLoad:image];
+            
             if (self.onFastImageLoadEnd) {
                 self.onFastImageLoadEnd(@{});
             }
             return;
         }
-
+        
         // Set headers.
-        NSDictionary* headers = _source.headers;
-        SDWebImageDownloaderRequestModifier* requestModifier = [SDWebImageDownloaderRequestModifier requestModifierWithBlock: ^NSURLRequest* _Nullable (NSURLRequest* _Nonnull request) {
-            NSMutableURLRequest* mutableRequest = [request mutableCopy];
-            for (NSString* header in headers) {
-                NSString* value = headers[header];
-                [mutableRequest setValue: value forHTTPHeaderField: header];
-            }
-            return [mutableRequest copy];
+        [_source.headers enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSString* header, BOOL *stop) {
+            [[SDWebImageDownloader sharedDownloader] setValue:header forHTTPHeaderField:key];
         }];
-        SDWebImageContext* context = @{SDWebImageContextDownloadRequestModifier: requestModifier};
-
+        
         // Set priority.
-        SDWebImageOptions options = SDWebImageRetryFailed | SDWebImageHandleCookies;
+        SDWebImageOptions options = SDWebImageRetryFailed;
         switch (_source.priority) {
             case FFFPriorityLow:
                 options |= SDWebImageLowPriority;
@@ -175,7 +160,7 @@
                 options |= SDWebImageHighPriority;
                 break;
         }
-
+        
         switch (_source.cacheControl) {
             case FFFCacheControlWeb:
                 options |= SDWebImageRefreshCached;
@@ -186,59 +171,58 @@
             case FFFCacheControlImmutable:
                 break;
         }
-
+		
+		if (_source.cacheOmitURLParams) {
+			[[FFFastImageCacheNoParamMapper shared] add:_source.url];
+		} else {
+			[[FFFastImageCacheNoParamMapper shared] remove:_source.url];
+		}
+        
         if (self.onFastImageLoadStart) {
             self.onFastImageLoadStart(@{});
             self.hasSentOnLoadStart = YES;
-        } else {
+        } {
             self.hasSentOnLoadStart = NO;
         }
         self.hasCompleted = NO;
         self.hasErrored = NO;
-
-        [self downloadImage: _source options: options context: context];
-    } else if (_defaultSource) {
-        [self setImage: _defaultSource];
+        
+        [self downloadImage:_source options:options];
     }
 }
 
-- (void) downloadImage: (FFFastImageSource*)source options: (SDWebImageOptions)options context: (SDWebImageContext*)context {
+- (void)downloadImage:(FFFastImageSource *) source options:(SDWebImageOptions) options {
     __weak typeof(self) weakSelf = self; // Always use a weak reference to self in blocks
-    [self sd_setImageWithURL: _source.url
-            placeholderImage: _defaultSource
-                     options: options
-                     context: context
-                    progress: ^(NSInteger receivedSize, NSInteger expectedSize, NSURL* _Nullable targetURL) {
+    [self sd_setImageWithURL:_source.url
+            placeholderImage:nil
+                     options:options
+                    progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
                         if (weakSelf.onFastImageProgress) {
                             weakSelf.onFastImageProgress(@{
-                                    @"loaded": @(receivedSize),
-                                    @"total": @(expectedSize)
-                            });
+                                                           @"loaded": @(receivedSize),
+                                                           @"total": @(expectedSize)
+                                                           });
                         }
-                    } completed: ^(UIImage* _Nullable image,
-                    NSError* _Nullable error,
-                    SDImageCacheType cacheType,
-                    NSURL* _Nullable imageURL) {
-                if (error) {
-                    weakSelf.hasErrored = YES;
-                    if (weakSelf.onFastImageError) {
-                        weakSelf.onFastImageError(@{});
-                    }
-                    if (weakSelf.onFastImageLoadEnd) {
-                        weakSelf.onFastImageLoadEnd(@{});
-                    }
-                } else {
-                    weakSelf.hasCompleted = YES;
-                    [weakSelf sendOnLoad: image];
-                    if (weakSelf.onFastImageLoadEnd) {
-                        weakSelf.onFastImageLoadEnd(@{});
-                    }
-                }
-            }];
-}
-
-- (void) dealloc {
-    [self sd_cancelCurrentImageLoad];
+                    } completed:^(UIImage * _Nullable image,
+                                  NSError * _Nullable error,
+                                  SDImageCacheType cacheType,
+                                  NSURL * _Nullable imageURL) {
+                        if (error) {
+                            weakSelf.hasErrored = YES;
+                                if (weakSelf.onFastImageError) {
+                                    weakSelf.onFastImageError(@{});
+                                }
+                                if (weakSelf.onFastImageLoadEnd) {
+                                    weakSelf.onFastImageLoadEnd(@{});
+                                }
+                        } else {
+                            weakSelf.hasCompleted = YES;
+                            [weakSelf sendOnLoad:image];
+                            if (weakSelf.onFastImageLoadEnd) {
+                                weakSelf.onFastImageLoadEnd(@{});
+                            }
+                        }
+                    }];
 }
 
 @end

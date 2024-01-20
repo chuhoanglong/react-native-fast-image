@@ -1,16 +1,18 @@
 package com.dylanvann.fastimage;
 
-import static com.bumptech.glide.request.RequestOptions.signatureOf;
-
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
+import android.net.Uri;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.Headers;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
@@ -19,11 +21,17 @@ import com.facebook.react.bridge.JSApplicationIllegalArgumentException;
 import com.facebook.react.bridge.NoSuchKeyException;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.views.imagehelper.ImageSource;
 
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nullable;
+
+import static com.bumptech.glide.request.RequestOptions.signatureOf;
 
 class FastImageViewConverter {
     private static final Drawable TRANSPARENT_DRAWABLE = new ColorDrawable(Color.TRANSPARENT);
@@ -47,15 +55,16 @@ class FastImageViewConverter {
                 put("contain", ScaleType.FIT_CENTER);
                 put("cover", ScaleType.CENTER_CROP);
                 put("stretch", ScaleType.FIT_XY);
-                put("center", ScaleType.CENTER_INSIDE);
+                put("center", ScaleType.CENTER);
             }};
-
+    
     // Resolve the source uri to a file path that android understands.
-    static @Nullable
-    FastImageSource getImageSource(Context context, @Nullable ReadableMap source) {
-        return source == null
-                ? null
-                : new FastImageSource(context, source.getString("uri"), getHeaders(source));
+    static FastImageSource getImageSource(Context context, ReadableMap source) {
+        Boolean cacheOmitURLParams = false;
+        if (source.hasKey("cacheOmitURLParams")) {
+            cacheOmitURLParams = source.getBoolean("cacheOmitURLParams");
+        }
+        return new FastImageSource(context, source.getString("uri"), getHeaders(source), cacheOmitURLParams);
     }
 
     static Headers getHeaders(ReadableMap source) {
@@ -85,8 +94,8 @@ class FastImageViewConverter {
         // Get cache control method.
         final FastImageCacheControl cacheControl = FastImageViewConverter.getCacheControl(source);
         DiskCacheStrategy diskCacheStrategy = DiskCacheStrategy.AUTOMATIC;
-        boolean onlyFromCache = false;
-        boolean skipMemoryCache = false;
+        Boolean onlyFromCache = false;
+        Boolean skipMemoryCache = false;
         switch (cacheControl) {
             case WEB:
                 // If using none then OkHttp integration should be used for caching.
@@ -102,23 +111,22 @@ class FastImageViewConverter {
         }
 
         RequestOptions options = new RequestOptions()
-                .diskCacheStrategy(diskCacheStrategy)
-                .onlyRetrieveFromCache(onlyFromCache)
-                .skipMemoryCache(skipMemoryCache)
-                .priority(priority)
-                .placeholder(TRANSPARENT_DRAWABLE);
-
+            .diskCacheStrategy(diskCacheStrategy)
+            .onlyRetrieveFromCache(onlyFromCache)
+            .skipMemoryCache(skipMemoryCache)
+            .priority(priority)
+            .placeholder(TRANSPARENT_DRAWABLE);
+        
         if (imageSource.isResource()) {
             // Every local resource (drawable) in Android has its own unique numeric id, which are
             // generated at build time. Although these ids are unique, they are not guaranteed unique
             // across builds. The underlying glide implementation caches these resources. To make
             // sure the cache does not return the wrong image, we should clear the cache when the
             // application version changes. Adding a cache signature for only these local resources
-            // solves this issue: https://github.com/DylanVann/react-native-fast-image/issues/402
             options = options.apply(signatureOf(ApplicationVersionSignature.obtain(context)));
         }
 
-        return options;
+        return options;                
     }
 
     private static FastImageCacheControl getCacheControl(ReadableMap source) {

@@ -46,6 +46,7 @@ export type FastImageSource = {
     headers?: Object,
     priority?: Priorities,
     cache?: CacheControls,
+    cacheOmitURLParams?: boolean
 }
 
 export type FastImageProps = $ReadOnly<{|
@@ -56,10 +57,8 @@ export type FastImageProps = $ReadOnly<{|
     onLoadStart?: ?() => void,
     onProgress?: ?(event: OnProgressEvent) => void,
 
-    source?: ?(FastImageSource | number),
-    defaultSource?: ?number,
+    source: FastImageSource | number,
 
-    tintColor?: number | string,
     resizeMode?: ?ResizeModes,
     fallback?: ?boolean,
     testID?: ?string,
@@ -70,6 +69,4 @@ declare export default class FastImage extends React$Component<FastImageProps> {
     static priority: Priority;
     static cacheControl: CacheControl;
     static preload: PreloadFn;
-    static clearMemoryCache: () => Promise<void>;
-    static clearDiskCache: () => Promise<void>;
 }
