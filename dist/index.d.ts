@@ -26,6 +26,7 @@ export declare type Source = {
     };
     priority?: Priority;
     cache?: Cache;
+    cacheOmitURLParams?: boolean;
 };
 export interface OnLoadEvent {
     nativeEvent: {
